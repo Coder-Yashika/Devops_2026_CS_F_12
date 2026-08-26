@@ -1,41 +1,54 @@
+import { useState } from "react";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 function StudentDashboard() {
-
-  const cards = [
-    {
-      title: "Total Applications",
-      value: "12",
-      icon: "📄",
-    },
-    {
-      title: "Pending",
-      value: "3",
-      icon: "⏳",
-    },
-    {
-      title: "Approved",
-      value: "7",
-      icon: "✅",
-    },
-    {
-      title: "Rejected",
-      value: "2",
-      icon: "❌",
-    },
-    {
-      title: "Proof Pending",
-      value: "2",
-      icon: "📤",
-    },
-    {
-      title: "Completed",
-      value: "5",
-      icon: "🎓",
-    },
-  ];
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+const cards = [
+  {
+    title: "Total Applications",
+    value: "12",
+    icon: "📄",
+    path: "/student/applications",
+    filter: "all",
+  },
+  {
+    title: "Pending",
+    value: "3",
+    icon: "⏳",
+    path: "/student/applications?status=pending",
+    filter: "pending",
+  },
+  {
+    title: "Approved",
+    value: "7",
+    icon: "✅",
+    path: "/student/applications?status=approved",
+    filter: "approved",
+  },
+  {
+    title: "Rejected",
+    value: "2",
+    icon: "❌",
+    path: "/student/applications?status=rejected",
+    filter: "rejected",
+  },
+  {
+    title: "Proof Pending",
+    value: "2",
+    icon: "📤",
+    path: "/student/proof",
+    filter: "proof",
+  },
+  {
+    title: "Completed",
+    value: "5",
+    icon: "🎓",
+    path: "/student/applications?status=completed",
+    filter: "completed",
+  },
+];
 
   return (
     <div className="dashboard-layout">

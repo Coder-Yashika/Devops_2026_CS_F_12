@@ -1,103 +1,390 @@
-import { Link } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
-function Sidebar({ role = "student" }) {
+import {
+  LayoutDashboard,
+  Inbox,
+  Users,
+  CheckCircle2,
+  XCircle,
+  FileCheck,
+  History,
+  Bell,
+  User,
+  LogOut,
+  X,
+} from "lucide-react";
+
+function Sidebar({
+  role = "student",
+  isOpen = false,
+  onClose = () => {},
+  pendingCount = 0,
+  notificationCount = 0,
+}) {
+  const navigate = useNavigate();
+
+  // Get currently logged-in user
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
+  const studentLinks = [
+    {
+      name: "Dashboard",
+      path: "/student",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Apply ODS",
+      path: "/student/apply-ods",
+      icon: FileCheck,
+    },
+    {
+      name: "My Applications",
+      path: "/student/applications",
+      icon: Inbox,
+    },
+    {
+      name: "Approved ODS",
+      path: "/student/approved",
+      icon: CheckCircle2,
+    },
+    {
+      name: "Proof Submission",
+      path: "/student/proof",
+      icon: FileCheck,
+    },
+    {
+      name: "Notifications",
+      path: "/student/notifications",
+      icon: Bell,
+    },
+    {
+      name: "Profile",
+      path: "/student/profile",
+      icon: User,
+    },
+  ];
+
+  const facultyLinks = [
+    {
+      name: "Dashboard",
+      path: "/faculty",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Pending Requests",
+      path: "/faculty/requests",
+      icon: Inbox,
+    },
+    {
+      name: "My Students",
+      path: "/faculty/students",
+      icon: Users,
+    },
+    {
+      name: "Approved ODS",
+      path: "/faculty/approved",
+      icon: CheckCircle2,
+    },
+    {
+      name: "Rejected ODS",
+      path: "/faculty/rejected",
+      icon: XCircle,
+    },
+    {
+      name: "Proof Verification",
+      path: "/faculty/proof",
+      icon: FileCheck,
+    },
+    {
+      name: "Approval History",
+      path: "/faculty/history",
+      icon: History,
+    },
+    {
+      name: "Notifications",
+      path: "/faculty/notifications",
+      icon: Bell,
+    },
+    {
+      name: "My Profile",
+      path: "/faculty/profile",
+      icon: User,
+    },
+  ];
+
+  const adminLinks = [
+    {
+      name: "Dashboard",
+      path: "/admin",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Students",
+      path: "/admin/students",
+      icon: Users,
+    },
+    {
+      name: "Faculty",
+      path: "/admin/faculty",
+      icon: Users,
+    },
+    {
+      name: "ODS Applications",
+      path: "/admin/applications",
+      icon: FileCheck,
+    },
+    {
+      name: "Reports",
+      path: "/admin/reports",
+      icon: History,
+    },
+    {
+      name: "Notifications",
+      path: "/admin/notifications",
+      icon: Bell,
+    },
+    {
+      name: "Profile",
+      path: "/admin/profile",
+      icon: User,
+    },
+  ];
+
+  let links = studentLinks;
+
+  if (role === "faculty") {
+    links = facultyLinks;
+  }
+
+  if (role === "admin") {
+    links = adminLinks;
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("user");
+
+    navigate("/login");
+  };
+
+  // Get initials from name
+  const getInitials = (name) => {
+    if (!name) {
+      return role === "faculty"
+        ? "F"
+        : role === "admin"
+        ? "A"
+        : "S";
+    }
+
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
   return (
-    <aside className="sidebar">
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={onClose}
+        />
+      )}
 
-      <div className="sidebar-logo">
-        <div className="logo-box small">
-          ODS
+      <aside
+        className={`sidebar ${
+          isOpen ? "sidebar-open" : ""
+        }`}
+      >
+
+        {/* =========================
+            LOGO
+        ========================= */}
+
+        <div className="sidebar-logo">
+
+          <div className="logo-box small">
+            ODS
+          </div>
+
+          <div>
+            <h2>
+              {role === "faculty"
+                ? "Faculty Portal"
+                : role === "admin"
+                ? "Admin Portal"
+                : "College ODS"}
+            </h2>
+
+            <span>
+              {role === "faculty"
+                ? "Mentor Management"
+                : role === "admin"
+                ? "System Management"
+                : "Management System"}
+            </span>
+          </div>
+
+          {/* Mobile close button */}
+          <button
+            type="button"
+            className="sidebar-close"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </button>
+
         </div>
 
-        <div>
-          <h2>College ODS</h2>
-          <span>Management System</span>
+
+        {/* =========================
+            USER INFORMATION
+        ========================= */}
+
+        <div className="sidebar-user">
+
+          <div className="faculty-avatar">
+            {getInitials(user.fullName)}
+          </div>
+
+          <div className="faculty-user-details">
+
+            <strong>
+              {user.fullName ||
+                (role === "faculty"
+                  ? "Faculty"
+                  : role === "admin"
+                  ? "Administrator"
+                  : "Student")}
+            </strong>
+
+            {role === "faculty" && (
+              <>
+                <span>
+                  {user.department || "Department"}
+                </span>
+
+                <small>
+                  {user.designation || "Faculty"}
+                </small>
+              </>
+            )}
+
+            {role === "student" && (
+              <>
+                <span>
+                  {user.department || "Student"}
+                </span>
+
+                <small>
+                  {user.enrollmentNumber || ""}
+                </small>
+              </>
+            )}
+
+            {role === "admin" && (
+              <span>
+                Administrator
+              </span>
+            )}
+
+          </div>
+
         </div>
-      </div>
 
-      <nav>
 
-        {role === "student" && (
-          <>
-            <Link to="/student/dashboard">
-              Dashboard
-            </Link>
+        {/* =========================
+            NAVIGATION
+        ========================= */}
 
-            <Link to="/student/apply-ods">
-              Apply ODS
-            </Link>
+        <nav className="sidebar-nav">
 
-            <a href="#">
-              My Applications
-            </a>
+          <p className="sidebar-section-title">
+            {role === "faculty"
+              ? "FACULTY MENU"
+              : role === "admin"
+              ? "ADMIN MENU"
+              : "STUDENT MENU"}
+          </p>
 
-            <a href="#">
-              Approved ODS
-            </a>
 
-            <a href="#">
-              Proof Submission
-            </a>
+          {links.map((item) => {
 
-            <a href="#">
-              Notifications
-            </a>
+            const Icon = item.icon;
 
-            <a href="#">
-              Profile
-            </a>
-          </>
-        )}
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `sidebar-link ${
+                    isActive ? "active" : ""
+                  }`
+                }
+              >
 
-        {role === "faculty" && (
-          <>
-            <Link to="/faculty/dashboard">
-              Dashboard
-            </Link>
+                <Icon size={19} />
 
-            <a href="#">
-              Pending Requests
-            </a>
+                <span>
+                  {item.name}
+                </span>
 
-            <a href="#">
-              Students
-            </a>
 
-            <a href="#">
-              Proof Verification
-            </a>
+                {/* Faculty pending requests */}
+                {item.name === "Pending Requests" &&
+                  role === "faculty" &&
+                  pendingCount > 0 && (
+                    <span className="notification-badge">
+                      {pendingCount}
+                    </span>
+                  )}
 
-            <a href="#">
-              Approval History
-            </a>
 
-            <a href="#">
-              Profile
-            </a>
-          </>
-        )}
+                {/* Notifications */}
+                {item.name === "Notifications" &&
+                  notificationCount > 0 && (
+                    <span className="notification-badge">
+                      {notificationCount}
+                    </span>
+                  )}
 
-        {role === "admin" && (
-          <>
-            <Link to="/admin/dashboard">
-              Dashboard
-            </Link>
+              </NavLink>
+            );
 
-            <a href="#">Students</a>
-            <a href="#">Faculty</a>
-            <a href="#">Mentors</a>
-            <a href="#">Coordinators</a>
-            <a href="#">Departments</a>
-            <a href="#">Event Types</a>
-            <a href="#">ODS Applications</a>
-            <a href="#">Reports</a>
-            <a href="#">Analytics</a>
-          </>
-        )}
+          })}
 
-      </nav>
+        </nav>
 
-    </aside>
+
+        {/* =========================
+            BOTTOM
+        ========================= */}
+
+        <div className="sidebar-bottom">
+
+          <button
+            type="button"
+            className="sidebar-link logout-link"
+            onClick={handleLogout}
+          >
+            <LogOut size={19} />
+
+            <span>
+              Logout
+            </span>
+          </button>
+
+        </div>
+
+      </aside>
+    </>
   );
 }
 

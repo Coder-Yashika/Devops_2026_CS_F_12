@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Sidebar from "../components/sidebar";
 import Navbar from "../components/navbar";
-
+import api from "../api/client";
 function ApplyODS() {
 
   const [formData, setFormData] = useState({
@@ -28,16 +28,51 @@ function ApplyODS() {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    console.log(formData);
-    console.log(proof);
+  try {
+    const { data } = await api.post(
+      "/ods",
+      formData
+    );
+
+    console.log("ODS Application:", data);
 
     alert(
       "ODS application submitted successfully!"
     );
-  };
+
+    setFormData({
+      eventName: "",
+      eventType: "",
+      organizer: "",
+      description: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      startTime: "",
+      endTime: "",
+      purpose: "",
+      eventLink: "",
+      mentor: "",
+    });
+
+    setProof(null);
+
+  } catch (error) {
+
+    console.error(
+      "ODS submission error:",
+      error
+    );
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to submit ODS application."
+    );
+  }
+};
 
   return (
     <div className="dashboard-layout">
