@@ -97,6 +97,29 @@ const Student = mongoose.model("Student", studentSchema);
 
 
 // =============================
+// FACULTY MODEL
+// =============================
+
+const facultySchema = new mongoose.Schema(
+  {
+    fullName: { type: String, required: true },
+    facultyId: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    department: { type: String, required: true },
+    designation: { type: String, required: true },
+    mobileNumber: { type: String, required: true },
+    password: { type: String, required: true },
+    role: { type: String, default: "faculty" },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Faculty = mongoose.model("Faculty", facultySchema);
+
+
+// =============================
 // TEST ROUTE
 // =============================
 
@@ -274,7 +297,161 @@ app.post("/api/v1/auth/register/student", async (req, res) => {
 
 
 // =============================
-// LOGIN
+// FACULTY REGISTRATION
+// =============================
+
+app.post("/api/v1/auth/register/faculty", async (req, res) => {
+
+  try {
+
+    console.log("Faculty registration request received");
+
+    const {
+      fullName,
+      facultyId,
+      email,
+      department,
+      designation,
+      mobileNumber,
+      password,
+    } = req.body;
+
+
+    // Validation
+
+    if (
+      !fullName ||
+      !facultyId ||
+      !email ||
+      !department ||
+      !designation ||
+      !mobileNumber ||
+      !password
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields.",
+      });
+
+    }
+
+
+    // Check existing email
+
+    const existingEmail = await Faculty.findOne({
+      email: email.toLowerCase(),
+    });
+
+    if (existingEmail) {
+
+      return res.status(400).json({
+        success: false,
+        message: "This email is already registered.",
+      });
+
+    }
+
+
+    // Check faculty ID
+
+    const existingFacultyId = await Faculty.findOne({
+      facultyId,
+    });
+
+    if (existingFacultyId) {
+
+      return res.status(400).json({
+        success: false,
+        message: "This faculty ID is already registered.",
+      });
+
+    }
+
+
+    // Hash password
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
+
+
+    // Create faculty
+
+    const faculty = await Faculty.create({
+
+      fullName,
+
+      facultyId,
+
+      email: email.toLowerCase(),
+
+      department,
+
+      designation,
+
+      mobileNumber,
+
+      password: hashedPassword,
+
+      role: "faculty",
+
+    });
+
+
+    console.log(
+      "Faculty created:",
+      faculty.email
+    );
+
+
+    return res.status(201).json({
+
+      success: true,
+
+      message:
+        "Faculty registration successful.",
+
+      user: {
+
+        id: faculty._id,
+
+        fullName: faculty.fullName,
+
+        email: faculty.email,
+
+        role: faculty.role,
+
+      },
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Faculty Registration Error:",
+      error
+    );
+
+    return res.status(500).json({
+
+      success: false,
+
+      message:
+        "Registration failed.",
+
+    });
+
+  }
+
+});
+
+
+// =============================
+// LOGIN (Student + Faculty)
 // =============================
 
 app.post("/api/v1/auth/login", async (req, res) => {
@@ -303,16 +480,22 @@ app.post("/api/v1/auth/login", async (req, res) => {
     }
 
 
-    // Find student
+    // Find account: check Student first, then Faculty
 
-    const student = await Student.findOne({
-
+    let account = await Student.findOne({
       email: email.toLowerCase(),
-
     });
 
+    if (!account) {
 
-    if (!student) {
+      account = await Faculty.findOne({
+        email: email.toLowerCase(),
+      });
+
+    }
+
+
+    if (!account) {
 
       return res.status(401).json({
 
@@ -331,7 +514,7 @@ app.post("/api/v1/auth/login", async (req, res) => {
     const passwordMatch =
       await bcrypt.compare(
         password,
-        student.password
+        account.password
       );
 
 
@@ -354,9 +537,9 @@ app.post("/api/v1/auth/login", async (req, res) => {
     const token = jwt.sign(
 
       {
-        id: student._id,
-        role: student.role,
-        email: student.email,
+        id: account._id,
+        role: account.role,
+        email: account.email,
       },
 
       process.env.JWT_SECRET || "ods_secret",
@@ -380,13 +563,13 @@ app.post("/api/v1/auth/login", async (req, res) => {
 
       user: {
 
-        id: student._id,
+        id: account._id,
 
-        fullName: student.fullName,
+        fullName: account.fullName,
 
-        email: student.email,
+        email: account.email,
 
-        role: student.role,
+        role: account.role,
 
       },
 
