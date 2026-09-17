@@ -393,7 +393,93 @@ app.get("/", (req, res) => {
 // =============================
 // STUDENT REGISTRATION
 // =============================
+app.post("/api/v1/auth/register/student", async (req, res) => {
+  try {
+    const {
+      fullName,
+      enrollmentNumber,
+      email,
+      personalEmail,
+      mobileNumber,
+      department,
+      course,
+      year,
+      semester,
+      password,
+    } = req.body;
 
+    // Validation
+    if (
+      !fullName ||
+      !enrollmentNumber ||
+      !email ||
+      !mobileNumber ||
+      !department ||
+      !course ||
+      !year ||
+      !semester ||
+      !password
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields.",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check existing student
+    const existingStudent = await Student.findOne({
+      $or: [
+        { email: normalizedEmail },
+        { enrollmentNumber: enrollmentNumber.trim() },
+      ],
+    });
+
+    if (existingStudent) {
+      return res.status(409).json({
+        success: false,
+        message: "Student with this email or enrollment number already exists.",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create student
+    const student = await Student.create({
+      fullName: fullName.trim(),
+      enrollmentNumber: enrollmentNumber.trim(),
+      email: normalizedEmail,
+      personalEmail: personalEmail?.trim(),
+      mobileNumber: mobileNumber.trim(),
+      department: department.trim(),
+      course: course.trim(),
+      year: Number(year),
+      semester: Number(semester),
+      password: hashedPassword,
+      role: "student",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Student registered successfully.",
+      student: {
+        id: student._id,
+        fullName: student.fullName,
+        email: student.email,
+        enrollmentNumber: student.enrollmentNumber,
+      },
+    });
+  } catch (error) {
+    console.error("Student registration error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error during student registration.",
+    });
+  }
+});
 // =============================
 // LOGIN - STUDENT + FACULTY
 // =============================

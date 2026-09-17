@@ -9,7 +9,7 @@ export default defineConfig({
     // Vite forwards it to the Express server on 5000.
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://ods-backend:5000',
         changeOrigin: true,
       },
     },
