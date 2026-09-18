@@ -1,0 +1,17 @@
+services:
+
+  backend:
+    build: ./backend
+    container_name: ods-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+
+  frontend:
+    build: ./frontend
+    container_name: ods-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
