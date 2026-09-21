@@ -1,5 +1,5 @@
 # 🎓 College ODS Management System
-
+# Jenkins automatic trigger test
 A full-stack **College On-Duty (ODS) Management System** designed to digitize and streamline the complete process of applying for, approving, managing, and completing On-Duty requests for students participating in hackathons, workshops, competitions, internships, seminars, sports, cultural activities, and other academic/extracurricular events.
 
 The system replaces the traditional paper-based/manual ODS process with a centralized ERP-style platform involving **Students, Mentors/Faculty, Coordinators, and Administrators**.
