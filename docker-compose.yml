@@ -1,5 +1,13 @@
 services:
 
+  mongodb:
+    image: mongo:8
+    container_name: ods-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
   backend:
     build: ./backend
     container_name: ods-backend
@@ -7,6 +15,11 @@ services:
       - "5000:5000"
     env_file:
       - .env
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/FSD-DevOps
+      PORT: 5000
+    depends_on:
+      - mongodb
 
   frontend:
     build: ./frontend
@@ -15,3 +28,6 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+
+volumes:
+  mongo_data:
