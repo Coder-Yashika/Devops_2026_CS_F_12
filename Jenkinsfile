@@ -19,7 +19,7 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
-                    echo "Latest commit message:"
+                    echo "Latest dynamic jenkins commit message:"
                     echo commitMessage
 
                     if (commitMessage.contains('[skip ci]')) {
