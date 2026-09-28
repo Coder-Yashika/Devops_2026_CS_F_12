@@ -11,24 +11,26 @@ C:\ProgramData\Jenkins\.jenkins\workspace\FSD_Project>git config --get remote.or
 https://github.com/Coder-Yashika/Devops_2026_CS_F_12
 
 Jenkins Build Number:
-17
+20
 
 Git Branch:
 main
 
 Git Commit:
 C:\ProgramData\Jenkins\.jenkins\workspace\FSD_Project>git rev-parse --short HEAD 
-7e91387
+d2f2c17
 
 Commit Message:
 C:\ProgramData\Jenkins\.jenkins\workspace\FSD_Project>git log -1 --pretty=%B 
-Test automatic Jenkins build
+Merge pull request #1 from Coder-Yashika/faculty_dev
+
+testing branch
 
 Build Date:
-25-09-2026 13:54:07
+28-09-2026 13:39:05
 
 Build URL:
-http://localhost:8080/job/FSD_Project/17/
+http://localhost:8080/job/FSD_Project/20/
 
 ----------------------------------------
 ENVIRONMENT
