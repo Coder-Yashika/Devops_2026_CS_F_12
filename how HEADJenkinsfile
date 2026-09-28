@@ -1,0 +1,355 @@
+[1mdiff --cc Jenkinsfile[m
+[1mindex dcc1c0d,1e3e2eb..0000000[m
+[1m--- a/Jenkinsfile[m
+[1m+++ b/Jenkinsfile[m
+[36m@@@ -1,47 -1,309 +1,350 @@@[m
+  pipeline {[m
+[32m++<<<<<<< HEAD[m
+[32m++=======[m
+[32m+ [m
+[32m++>>>>>>> e2cd1d21d622d2fd1ce3f8b0527873b4b40c993b[m
+      agent any[m
+  [m
+      stages {[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +        stage('Checkout') {[m
+[32m +            steps {[m
+[32m +                echo 'Code checked out by Jenkins'[m
+[32m +            }[m
+[32m +        }[m
+[32m +[m
+[32m +        stage('Backend Check') {[m
+[32m +            steps {[m
+[32m +                dir('backend') {[m
+[32m +                    bat 'npm ci'[m
+[32m +                    bat 'node --check server.js'[m
+[32m++=======[m
+[32m+         /*[m
+[32m+          * Jenkins automatically performs the SCM checkout[m
+[32m+          * because this is "Pipeline script from SCM".[m
+[32m+          * Therefore, no separate checkout stage is needed.[m
+[32m+          */[m
+[32m+ [m
+[32m+         stage('Check Trigger Commit') {[m
+[32m+             steps {[m
+[32m+                 script {[m
+[32m+ [m
+[32m+                     def commitMessage = bat([m
+[32m+                         script: 'git log -1 --pretty=%%B',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     echo "Latest dynamic jenkins commit message:"[m
+[32m+                     echo commitMessage[m
+[32m+ [m
+[32m+                     if (commitMessage.contains('[skip ci]')) {[m
+[32m+ [m
+[32m+                         echo '========================================'[m
+[32m+                         echo 'JENKINS FEEDBACK COMMIT DETECTED'[m
+[32m+                         echo 'Skipping CI build to prevent build loop.'[m
+[32m+                         echo '========================================'[m
+[32m+ [m
+[32m+                         env.SKIP_CI = 'true'[m
+[32m+ [m
+[32m+                     } else {[m
+[32m+ [m
+[32m+                         env.SKIP_CI = 'false'[m
+[32m+                     }[m
+[32m++>>>>>>> e2cd1d21d622d2fd1ce3f8b0527873b4b40c993b[m
+                  }[m
+              }[m
+          }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +        stage('Frontend Build & Check') {[m
+[32m +            steps {[m
+[32m +                dir('frontend') {[m
+[32m +                    bat 'npm ci'[m
+[32m++=======[m
+[32m+ [m
+[32m+         stage('Environment Check') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+                 bat 'node --version'[m
+[32m+                 bat 'npm --version'[m
+[32m+             }[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         stage('Backend Install') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+                 dir('backend') {[m
+[32m+                     bat 'npm install'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         stage('Frontend Install') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+                 dir('frontend') {[m
+[32m+                     bat 'npm install'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         stage('Frontend Build') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+                 dir('frontend') {[m
+[32m++>>>>>>> e2cd1d21d622d2fd1ce3f8b0527873b4b40c993b[m
+                      bat 'npm run build'[m
+                  }[m
+              }[m
+          }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +        stage('Docker Build') {[m
+[32m +            steps {[m
+[32m +                bat 'docker build -t ods-backend-test ./backend'[m
+[32m +                bat 'docker build -t ods-frontend-test ./frontend'[m
+[32m++=======[m
+[32m+ [m
+[32m+         stage('Generate Feedback') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+ [m
+[32m+                 script {[m
+[32m+ [m
+[32m+                     // Get repository URL automatically[m
+[32m+                     def repoUrl = bat([m
+[32m+                         script: 'git config --get remote.origin.url',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     // Remove .git from repository name[m
+[32m+                     def repository = repoUrl[m
+[32m+                         .replace('.git', '')[m
+[32m+ [m
+[32m+                     // Get Node.js version[m
+[32m+                     def nodeVersion = bat([m
+[32m+                         script: 'node --version',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     // Get npm version[m
+[32m+                     def npmVersion = bat([m
+[32m+                         script: 'npm --version',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     // Get short commit ID[m
+[32m+                     def commitId = bat([m
+[32m+                         script: 'git rev-parse --short HEAD',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     // Get commit message[m
+[32m+                     def commitMessage = bat([m
+[32m+                         script: 'git log -1 --pretty=%%B',[m
+[32m+                         returnStdout: true[m
+[32m+                     ).trim()[m
+[32m+ [m
+[32m+                     // Build date and time[m
+[32m+                     def buildDate = new Date().format([m
+[32m+                         'dd-MM-yyyy HH:mm:ss'[m
+[32m+                     )[m
+[32m+ [m
+[32m+                     def feedback = """[m
+[32m+ ========================================[m
+[32m+        FSD PROJECT CI/CD FEEDBACK[m
+[32m+ ========================================[m
+[32m+ [m
+[32m+ Project:[m
+[32m+ College ODS Full Stack Project[m
+[32m+ [m
+[32m+ Repository:[m
+[32m+ ${repository}[m
+[32m+ [m
+[32m+ Jenkins Build Number:[m
+[32m+ ${env.BUILD_NUMBER}[m
+[32m+ [m
+[32m+ Git Branch:[m
+[32m+ ${env.BRANCH_NAME ?: 'main'}[m
+[32m+ [m
+[32m+ Git Commit:[m
+[32m+ ${commitId}[m
+[32m+ [m
+[32m+ Commit Message:[m
+[32m+ ${commitMessage}[m
+[32m+ [m
+[32m+ Build Date:[m
+[32m+ ${buildDate}[m
+[32m+ [m
+[32m+ Build URL:[m
+[32m+ ${env.BUILD_URL}[m
+[32m+ [m
+[32m+ ----------------------------------------[m
+[32m+ ENVIRONMENT[m
+[32m+ ----------------------------------------[m
+[32m+ [m
+[32m+ Node.js:[m
+[32m+ ${nodeVersion}[m
+[32m+ [m
+[32m+ npm:[m
+[32m+ ${npmVersion}[m
+[32m+ [m
+[32m+ ----------------------------------------[m
+[32m+ PIPELINE STAGES[m
+[32m+ ----------------------------------------[m
+[32m+ [m
+[32m+ ✓ GitHub Repository Checkout[m
+[32m+ ✓ Node.js Environment Check[m
+[32m+ ✓ Backend npm install[m
+[32m+ ✓ Frontend npm install[m
+[32m+ ✓ Frontend Production Build[m
+[32m+ ✓ Dynamic Feedback Generation[m
+[32m+ [m
+[32m+ ----------------------------------------[m
+[32m+ OVERALL STATUS[m
+[32m+ ----------------------------------------[m
+[32m+ [m
+[32m+ BUILD COMPLETED SUCCESSFULLY[m
+[32m+ [m
+[32m+ ----------------------------------------[m
+[32m+ CI/CD INFORMATION[m
+[32m+ ----------------------------------------[m
+[32m+ [m
+[32m+ Feedback generated automatically[m
+[32m+ by Jenkins CI/CD pipeline.[m
+[32m+ [m
+[32m+ ========================================[m
+[32m+           Generated by Jenkins[m
+[32m+ ========================================[m
+[32m+ """[m
+[32m+ [m
+[32m+                     writeFile([m
+[32m+                         file: 'feedback.txt',[m
+[32m+                         text: feedback[m
+[32m+                     )[m
+[32m+ [m
+[32m+                     echo 'feedback.txt generated successfully.'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         stage('Check Feedback') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+                 bat 'type feedback.txt'[m
+[32m+             }[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         stage('Push Feedback to GitHub') {[m
+[32m+             when {[m
+[32m+                 expression {[m
+[32m+                     env.SKIP_CI != 'true'[m
+[32m+                 }[m
+[32m+             }[m
+[32m+ [m
+[32m+             steps {[m
+[32m+ [m
+[32m+                 withCredentials([[m
+[32m+                     usernamePassword([m
+[32m+                         credentialsId: 'github-push',[m
+[32m+                         usernameVariable: 'GIT_USERNAME',[m
+[32m+                         passwordVariable: 'GIT_TOKEN'[m
+[32m+                     )[m
+[32m+                 ]) {[m
+[32m+ [m
+[32m+                     bat '''[m
+[32m+                         git config user.name "Jenkins"[m
+[32m+                         git config user.email "jenkins@localhost"[m
+[32m+ [m
+[32m+                         echo Adding feedback.txt...[m
+[32m+ [m
+[32m+                         git add feedback.txt[m
+[32m+ [m
+[32m+                         git diff --cached --quiet || git commit -m "Add Jenkins feedback [skip ci]"[m
+[32m+ [m
+[32m+                         echo Pushing feedback.txt to GitHub...[m
+[32m+ [m
+[32m+                         git push https://%GIT_USERNAME%:%GIT_TOKEN%@github.com/Coder-Yashika/Devops_2026_CS_F_12.git HEAD:main[m
+[32m+                     '''[m
+[32m+                 }[m
+[32m++>>>>>>> e2cd1d21d622d2fd1ce3f8b0527873b4b40c993b[m
+              }[m
+          }[m
+      }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +    post {[m
+[32m +        success {[m
+[32m +            echo '✅ All checks passed successfully!'[m
+[32m +        }[m
+[32m +[m
+[32m +        failure {[m
+[32m +            echo '❌ Build or test failed!'[m
+[32m++=======[m
+[32m+ [m
+[32m+     post {[m
+[32m+ [m
+[32m+         always {[m
+[32m+ [m
+[32m+             archiveArtifacts([m
+[32m+                 artifacts: 'feedback.txt',[m
+[32m+                 allowEmptyArchive: true[m
+[32m+             )[m
+[32m+ [m
+[32m+             echo 'Feedback file processing completed.'[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         success {[m
+[32m+ [m
+[32m+             echo '===================================='[m
+[32m+             echo 'FSD PIPELINE SUCCESSFUL'[m
+[32m+             echo '===================================='[m
+[32m+         }[m
+[32m+ [m
+[32m+ [m
+[32m+         failure {[m
+[32m+ [m
+[32m+             echo '===================================='[m
+[32m+             echo 'FSD PIPELINE FAILED'[m
+[32m+             echo '===================================='[m
+[32m++>>>>>>> e2cd1d21d622d2fd1ce3f8b0527873b4b40c993b[m
+          }[m
+      }[m
+  }[m
