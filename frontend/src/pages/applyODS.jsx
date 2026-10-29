@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../components/sidebar";
@@ -27,12 +27,27 @@ function ApplyODS() {
   });
 
   const [proof, setProof] = useState(null);
+  const [mentorsList, setMentorsList] = useState([]);
 
   // ==============================
   // UI STATES
   // ==============================
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const res = await api.get("/faculty/mentors");
+        if (res.data?.success && Array.isArray(res.data.mentors) && res.data.mentors.length > 0) {
+          setMentorsList(res.data.mentors);
+        }
+      } catch (err) {
+        console.error("Failed to load mentors:", err);
+      }
+    };
+    fetchMentors();
+  }, []);
 
   // ==============================
   // HANDLE INPUT CHANGE
@@ -214,10 +229,6 @@ function ApplyODS() {
         // Your current backend needs file-upload
         // support before this can be uploaded.
       });
-      if (response.data?.success) {
-  alert("ODS application submitted successfully!");
-  navigate("/student/dashboard");
-}
 
       console.log("ODS Response:", response.data);
 
@@ -648,23 +659,25 @@ function ApplyODS() {
                 onChange={handleChange}
                 required
               >
-
                 <option value="">
                   Select Mentor
                 </option>
-
-                <option value="faculty1">
-                  Dr. Faculty One - CSE
-                </option>
-
-                <option value="faculty2">
-                  Prof. Faculty Two - CSE
-                </option>
-
-                <option value="faculty3">
-                  Dr. Faculty Three - CSE
-                </option>
-
+                {mentorsList.length > 0 ? (
+                  mentorsList.map((m) => (
+                    <option key={m._id || m.facultyId} value={m.facultyId}>
+                      {m.fullName} - {m.department} ({m.facultyId})
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="FAC_MANISH">
+                      Dr. Manish Bhardwaj - Computer Science & Engineering (FAC_MANISH)
+                    </option>
+                    <option value="FAC_SUMIT">
+                      Prof. Sumit Kumar - Computer Science & Engineering (FAC_SUMIT)
+                    </option>
+                  </>
+                )}
               </select>
 
               <p className="helper-text">

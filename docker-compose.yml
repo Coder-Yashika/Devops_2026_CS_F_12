@@ -14,7 +14,7 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       MONGO_URI: mongodb://mongodb:27017/FSD-DevOps
       PORT: 5000
@@ -26,6 +26,8 @@ services:
     container_name: ods-frontend
     ports:
       - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://ods-backend:5000
     depends_on:
       - backend
 

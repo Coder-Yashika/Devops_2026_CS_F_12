@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
+import Sidebar from "../components/sidebar";
+import Navbar from "../components/navbar";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 
@@ -431,15 +431,32 @@ function StudentDashboard() {
 
                           </div>
 
-                          <span
-                            className={`status ${getStatusClass(
-                              app.status
-                            )}`}
-                          >
-                            {getStatusText(
-                              app.status
-                            )}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <Link
+                              to="/student/proof"
+                              style={{
+                                fontSize: "12px",
+                                padding: "4px 10px",
+                                borderRadius: "6px",
+                                backgroundColor: "var(--color-brand-50, #eef2fb)",
+                                color: "var(--color-brand-600, #1e3a63)",
+                                fontWeight: 600,
+                                textDecoration: "none",
+                              }}
+                            >
+                              📄 Proof & Report
+                            </Link>
+
+                            <span
+                              className={`status ${getStatusClass(
+                                app.status
+                              )}`}
+                            >
+                              {getStatusText(
+                                app.status
+                              )}
+                            </span>
+                          </div>
 
                         </div>
 
